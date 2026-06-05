@@ -1,0 +1,704 @@
+
+<h2 class="sr-only">NeuralRetail AI Powered Dashboard </h2>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --nr-bg:#0a0e1a;--nr-surface:#111827;--nr-card:#1a2235;--nr-border:#2a3548;
+  --nr-accent:#00d4ff;--nr-accent2:#7c3aed;--nr-accent3:#10b981;--nr-accent4:#f59e0b;
+  --nr-text:#e2e8f0;--nr-muted:#64748b;--nr-red:#ef4444;
+  --nr-grad:linear-gradient(135deg,#00d4ff22,#7c3aed22);
+}
+body{font-family:'SF Pro Display',system-ui,sans-serif;background:var(--nr-bg);color:var(--nr-text);min-height:600px}
+
+.nr-shell{display:flex;flex-direction:column;height:auto;min-height:580px}
+
+.nr-topbar{background:var(--nr-surface);border-bottom:1px solid var(--nr-border);padding:10px 16px;display:flex;align-items:center;gap:12px}
+.nr-logo{font-size:15px;font-weight:700;background:linear-gradient(90deg,#00d4ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
+.nr-logo span{font-weight:300}
+.nr-topbar-meta{margin-left:auto;font-size:11px;color:var(--nr-muted)}
+
+.nr-nav{background:var(--nr-surface);border-bottom:1px solid var(--nr-border);display:flex;overflow-x:auto;padding:0 8px;gap:2px;scrollbar-width:none}
+.nr-nav::-webkit-scrollbar{display:none}
+.nr-navbtn{padding:8px 12px;font-size:11px;font-weight:500;color:var(--nr-muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;letter-spacing:0.2px}
+.nr-navbtn:hover{color:var(--nr-text)}
+.nr-navbtn.active{color:var(--nr-accent);border-bottom-color:var(--nr-accent)}
+
+.nr-page{display:none;padding:14px;animation:fadeIn 0.2s ease}
+.nr-page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+.nr-title{font-size:14px;font-weight:600;color:var(--nr-text);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.nr-title::before{content:'';display:block;width:3px;height:14px;background:var(--nr-accent);border-radius:2px}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.kpi-card{background:var(--nr-card);border:1px solid var(--nr-border);border-radius:10px;padding:12px 14px;position:relative;overflow:hidden}
+.kpi-card::after{content:'';position:absolute;top:0;right:0;width:40px;height:40px;background:var(--nr-grad);border-radius:0 10px 0 40px;opacity:0.6}
+.kpi-label{font-size:10px;color:var(--nr-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px}
+.kpi-val{font-size:20px;font-weight:700;color:var(--nr-text)}
+.kpi-sub{font-size:10px;color:var(--nr-accent3);margin-top:2px}
+.kpi-card.accent1{border-color:#00d4ff44}
+.kpi-card.accent2{border-color:#7c3aed44}
+.kpi-card.accent3{border-color:#10b98144}
+.kpi-card.accent4{border-color:#f59e0b44}
+
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.chart-row.full{grid-template-columns:1fr}
+.chart-row.thirds{grid-template-columns:2fr 1fr}
+.chart-box{background:var(--nr-card);border:1px solid var(--nr-border);border-radius:10px;padding:12px}
+.chart-label{font-size:11px;color:var(--nr-muted);margin-bottom:8px;font-weight:500}
+.chart-wrap{position:relative;width:100%}
+
+.data-table{width:100%;border-collapse:collapse;font-size:11px}
+.data-table th{color:var(--nr-muted);font-weight:500;text-align:left;padding:6px 8px;border-bottom:1px solid var(--nr-border);text-transform:uppercase;font-size:10px;letter-spacing:0.5px}
+.data-table td{padding:6px 8px;border-bottom:1px solid #1e2a3a;color:var(--nr-text)}
+.data-table tr:hover td{background:#ffffff08}
+
+.bar-inline{height:4px;border-radius:2px;background:linear-gradient(90deg,var(--nr-accent),var(--nr-accent2));display:inline-block}
+.badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:500}
+.badge.green{background:#10b98122;color:#10b981}
+.badge.red{background:#ef444422;color:#ef4444}
+.badge.blue{background:#00d4ff22;color:#00d4ff}
+.badge.amber{background:#f59e0b22;color:#f59e0b}
+.badge.purple{background:#7c3aed22;color:#a78bfa}
+
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:8px;font-size:11px;color:var(--nr-muted)}
+.legend-dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:4px}
+
+.filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.filter-bar select,.filter-bar input{background:var(--nr-card);border:1px solid var(--nr-border);color:var(--nr-text);padding:5px 10px;border-radius:6px;font-size:11px;outline:none}
+.filter-bar label{font-size:11px;color:var(--nr-muted)}
+
+.insight-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.insight-chip{background:var(--nr-card);border:1px solid var(--nr-border);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--nr-muted);flex:1;min-width:140px}
+.insight-chip strong{color:var(--nr-text);display:block;font-size:13px;margin-bottom:2px}
+</style>
+
+<div class="nr-shell">
+  <div class="nr-topbar">
+    <div class="nr-logo">Neural<span>Retail</span> <span style="color:var(--nr-muted);font-size:11px;font-weight:400;-webkit-text-fill-color:var(--nr-muted)">Analytics Suite</span></div>
+    <div class="nr-topbar-meta">Dataset: Online Retail &nbsp;|&nbsp; 1,048,575 records &nbsp;|&nbsp; Dec 2009 – Dec 2011 &nbsp;|&nbsp; 43 countries</div>
+  </div>
+
+  <div class="nr-nav" id="nav">
+    <button class="nr-navbtn active" onclick="showPage(0)">01 Executive Summary</button>
+    <button class="nr-navbtn" onclick="showPage(1)">02 Sales Trend</button>
+    <button class="nr-navbtn" onclick="showPage(2)">03 Product Performance</button>
+    <button class="nr-navbtn" onclick="showPage(3)">04 Customer Analytics</button>
+    <button class="nr-navbtn" onclick="showPage(4)">05 Region / Country</button>
+    <button class="nr-navbtn" onclick="showPage(5)">06 Monthly & Seasonal</button>
+    <button class="nr-navbtn" onclick="showPage(6)">07 Customer Behaviour</button>
+    <button class="nr-navbtn" onclick="showPage(7)">08 Profit & Revenue</button>
+    <button class="nr-navbtn" onclick="showPage(8)">09 Inventory Risk</button>
+    <button class="nr-navbtn" onclick="showPage(9)">10 Order & Transaction</button>
+    <button class="nr-navbtn" onclick="showPage(10)">11 Advanced Analytics</button>
+    <button class="nr-navbtn" onclick="showPage(11)">12 Interactive Filters</button>
+  </div>
+
+  <!-- PAGE 1: Executive Summary -->
+  <div class="nr-page active" id="page-0">
+    <div class="nr-title">Executive Summary Dashboard</div>
+    <div class="kpi-grid">
+      <div class="kpi-card accent1"><div class="kpi-label">Total Revenue</div><div class="kpi-val">£20.5M</div><div class="kpi-sub">▲ +32% YoY growth</div></div>
+      <div class="kpi-card accent2"><div class="kpi-label">Total Orders</div><div class="kpi-val">39,534</div><div class="kpi-sub">Unique invoices</div></div>
+      <div class="kpi-card accent3"><div class="kpi-label">Total Customers</div><div class="kpi-val">5,860</div><div class="kpi-sub">▲ 72% repeat buyers</div></div>
+      <div class="kpi-card accent4"><div class="kpi-label">Products Sold</div><div class="kpi-val">4,916</div><div class="kpi-sub">Unique SKUs</div></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box">
+        <div class="chart-label">Revenue by quarter (2010–2011)</div>
+        <div class="legend"><span><span class="legend-dot" style="background:#00d4ff"></span>2010</span><span><span class="legend-dot" style="background:#7c3aed"></span>2011</span></div>
+        <div class="chart-wrap" style="height:180px"><canvas id="c_exec_q" role="img" aria-label="Quarterly revenue comparison 2010 vs 2011">Q1 2010: 2.0M, Q2 2010: 2.1M, Q3 2010: 2.3M, Q4 2010: 3.9M; Q1 2011: 1.9M, Q2 2011: 2.1M, Q3 2011: 2.5M, Q4 2011: 2.8M</canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">Revenue by top 5 countries</div>
+        <div class="legend"><span><span class="legend-dot" style="background:#10b981"></span>Country share</span></div>
+        <div class="chart-wrap" style="height:180px"><canvas id="c_exec_country" role="img" aria-label="Revenue by country">UK 85%, EIRE 3.2%, Netherlands 2.7%, Germany 2.1%, France 1.7%</canvas></div>
+      </div>
+    </div>
+    <div class="chart-row thirds">
+      <div class="chart-box">
+        <div class="chart-label">Monthly revenue trend (2011)</div>
+        <div class="chart-wrap" style="height:140px"><canvas id="c_exec_monthly" role="img" aria-label="Monthly revenue 2011">Jan–Nov showing growth peak in Nov 2011</canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">Key business metrics</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+          <div style="background:#0f1929;border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--nr-muted);margin-bottom:2px">Avg Order Value</div><div style="font-size:16px;font-weight:700;color:var(--nr-accent)">£517</div></div>
+          <div style="background:#0f1929;border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--nr-muted);margin-bottom:2px">Avg Revenue/Customer</div><div style="font-size:16px;font-weight:700;color:var(--nr-accent2)">£2,956</div></div>
+          <div style="background:#0f1929;border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--nr-muted);margin-bottom:2px">Return Rate</div><div style="font-size:16px;font-weight:700;color:var(--nr-red)">2.2%</div></div>
+          <div style="background:#0f1929;border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--nr-muted);margin-bottom:2px">Avg Orders/Customer</div><div style="font-size:16px;font-weight:700;color:var(--nr-accent3)">6.22</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 2: Sales Trend -->
+  <div class="nr-page" id="page-1">
+    <div class="nr-title">Sales Trend Analysis</div>
+    <div class="kpi-grid">
+      <div class="kpi-card accent1"><div class="kpi-label">Peak Month Revenue</div><div class="kpi-val">£1.51M</div><div class="kpi-sub">November 2011</div></div>
+      <div class="kpi-card accent2"><div class="kpi-label">Lowest Month</div><div class="kpi-val">£120K</div><div class="kpi-sub">December 2011 (partial)</div></div>
+      <div class="kpi-card accent3"><div class="kpi-label">YoY Growth</div><div class="kpi-val">+18.4%</div><div class="kpi-sub">2010 → 2011</div></div>
+      <div class="kpi-card accent4"><div class="kpi-label">Best Quarter</div><div class="kpi-val">Q4 2010</div><div class="kpi-sub">£3.9M revenue</div></div>
+    </div>
+    <div class="chart-row full">
+      <div class="chart-box">
+        <div class="chart-label">Full monthly revenue timeline (Dec 2009 – Dec 2011)</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="c_trend_full" role="img" aria-label="Full monthly revenue timeline">Steady growth from 2009 to peak in Nov 2011</canvas></div>
+      </div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box">
+        <div class="chart-label">Quarterly comparison 2010 vs 2011</div>
+        <div class="chart-wrap" style="height:160px"><canvas id="c_trend_qtr" role="img" aria-label="Quarterly comparison">Q1-Q4 comparison between years</canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">Revenue growth rate (MoM %)</div>
+        <div class="chart-wrap" style="height:160px"><canvas id="c_trend_mom" role="img" aria-label="Month-over-month growth rate">Monthly growth rate fluctuations</canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 3: Product Performance -->
+  <div class="nr-page" id="page-2">
+    <div class="nr-title">Product Performance Dashboard</div>
+    <div class="kpi-grid">
+      <div class="kpi-card accent1"><div class="kpi-label">Total SKUs</div><div class="kpi-val">4,916</div><div class="kpi-sub">Unique products</div></div>
+      <div class="kpi-card accent2"><div class="kpi-label">Top Product Revenue</div><div class="kpi-val">£341K</div><div class="kpi-sub">REGENCY CAKESTAND</div></div>
+      <div class="kpi-card accent3"><div class="kpi-label">Top Category</div><div class="kpi-val">JUMBO</div><div class="kpi-sub">£963K category revenue</div></div>
+      <div class="kpi-card accent4"><div class="kpi-label">Avg Revenue / SKU</div><div class="kpi-val">£4,161</div><div class="kpi-sub">Per product</div></div>
+    </div>
+    <div class="chart-row thirds">
+      <div class="chart-box">
+        <div class="chart-label">Top 10 products by revenue</div>
+        <div class="chart-wrap" style="height:240px"><canvas id="c_prod_top10" role="img" aria-label="Top 10 products">Regency Cakestand leads with 341K</canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">Revenue by category</div>
+        <div class="chart-wrap" style="height:240px"><canvas id="c_prod_cat" role="img" aria-label="Category breakdown">JUMBO leads category revenue</canvas></div>
+      </div>
+    </div>
+    <div class="chart-row full">
+      <div class="chart-box">
+        <div class="chart-label">Top 10 products — performance table</div>
+        <table class="data-table">
+          <thead><tr><th>Rank</th><th>Product</th><th>Revenue</th><th>Revenue Share</th><th>Status</th></tr></thead>
+          <tbody id="prod_table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 4: Customer Analytics -->
+  <div class="nr-page" id="page-3">
+    <div class="nr-title">Customer Analytics Dashboard</div>
+    <div class="kpi-grid">
+      <div class="kpi-card accent1"><div class="kpi-label">Total Customers</div><div class="kpi-val">5,860</div><div class="kpi-sub">With recorded IDs</div></div>
+      <div class="kpi-card accent2"><div class="kpi-label">Repeat Customers</div><div class="kpi-val">4,221</div><div class="kpi-sub">72% retention rate</div></div>
+      <div class="kpi-card accent3"><div class="kpi-label">One-time Buyers</div><div class="kpi-val">1,639</div><div class="kpi-sub">28% single purchase</div></div>
+      <div class="kpi-card accent4"><div class="kpi-label">LTV (avg)</div><div class="kpi-val">£2,956</div><div class="kpi-sub">Per customer</div></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box">
+        <div class="chart-label">Customer segmentation (RFM)</div>
+        <div class="chart-wrap" style="height:190px"><canvas id="c_cust_seg" role="img" aria-label="Customer RFM segmentation">Champions, Loyal, At Risk, Lost customers</canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">New vs repeat customers</div>
+        <div class="chart-wrap" style="height:190px"><canvas id="c_cust_type" role="img" aria-label="New vs repeat customers">72% repeat, 28% new</canvas></div>
+      </div>
+    </div>
+    <div class="chart-row full">
+      <div class="chart-box">
+        <div class="chart-label">Customer order frequency distribution</div>
+        <div class="chart-wrap" style="height:140px"><canvas id="c_cust_freq" role="img" aria-label="Order frequency distribution">Most customers order 1-5 times</canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 5: Region/Country -->
+  <div class="nr-page" id="page-4">
+    <div class="nr-title">Region / Country Sales Dashboard</div>
+    <div class="kpi-grid">
+      <div class="kpi-card accent1"><div class="kpi-label">Countries Served</div><div class="kpi-val">43</div><div class="kpi-sub">Global reach</div></div>
+      <div class="kpi-card accent2"><div class="kpi-label">UK Revenue</div><div class="kpi-val">£17.4M</div><div class="kpi-sub">84.9% of total</div></div>
+      <div class="kpi-card accent3"><div class="kpi-label">International Revenue</div><div class="kpi-val">£3.1M</div><div class="kpi-sub">15.1% of total</div></div>
+      <div class="kpi-card accent4"><div class="kpi-label">Top Intl Market</div><div class="kpi-val">EIRE</div><div class="kpi-sub">£658K revenue</div></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box">
+        <div class="chart-label">Top 10 countries by revenue</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="c_region_bar" role="img" aria-label="Top 10 countries by revenue">UK dominates with 17.4M</canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">International market share (ex-UK)</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="c_region_pie" role="img" aria-label="International market share">EIRE, Netherlands, Germany, France lead international markets</canvas></div>
+      </div>
+    </div>
+    <div class="chart-row full">
+      <div class="chart-box">
+        <div class="chart-label">Country revenue breakdown</div>
+        <table class="data-table">
+          <thead><tr><th>Country</th><th>Revenue</th><th>Share</th><th>Bar</th><th>Tier</th></tr></thead>
+          <tbody id="country_table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 6: Monthly & Seasonal -->
+  <div class="nr-page" id="page-5">
+    <div class="nr-title">Monthly and Seasonal Sales Dashboard</div>
+    <div class="kpi-grid">
+      <div class="kpi-card accent1"><div class="kpi-label">Peak Season</div><div class="kpi-val">Q4</div><div class="kpi-sub">Oct–Dec highest sales</div></div>
+      <div class="kpi-card accent2"><div class="kpi-label">Strongest Month</div><div class="kpi-val">November</div><div class="kpi-sub">£2.98M combined</div></div>
+      <div class="kpi-card accent3"><div class="kpi-label">Weakest Month</div><div class="kpi-val">February</div><div class="kpi-sub">£1.08M combined</div></div>
+      <div class="kpi-card accent4"><div class="kpi-label">Seasonal Index</div><div class="kpi-val">2.77×</div><div class="kpi-sub">Nov vs Feb ratio</div></div>
+    </div>
+    <div class="chart-row full">
+      <div class="chart-box">
+        <div class="chart-label">Average revenue by month (seasonality pattern)</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="c_season_avg" role="img" aria-label="Seasonal revenue pattern by month">Sep-Nov is peak season with significant uplift</canvas></div>
+      </div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box">
+        <div class="chart-label">Monthly revenue heatmap (2010–2011)</div>
+        <div id="heatmap_container" style="margin-top:4px"></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">Season split (revenue %)</div>
+        <div class="chart-wrap" style="height:180px"><canvas id="c_season_pie" role="img" aria-label="Revenue by season">Q4 dominates with ~38% of annual revenue</canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 7: Customer Behaviour -->
+  <div class="nr-page" id="page-6">
+    <div class="nr-title">Customer Behaviour Dashboard</div>
+    <div class="kpi-grid">
+      <div class="kpi-card accent1"><div class="kpi-label">Peak Shopping Hour</div><div class="kpi-val">12:00</div><div class="kpi-sub">Lunch hour peak</div></div>
+      <div class="kpi-card accent2"><div class="kpi-label">Busiest Day</div><div class="kpi-val">Thursday</div><div class="kpi-sub">Mid-week purchases</div></div>
+      <div class="kpi-card accent3"><div class="kpi-label">Avg Items/Order</div><div class="kpi-val">20.3</div><div class="kpi-sub">Items per invoice</div></div>
+      <div class="kpi-card accent4"><div class="kpi-label">Avg Order Value</div><div class="kpi-val">£517</div><div class="kpi-sub">Per transaction</div></div>
+    </div>
+    <div class="chart-row full">
+      <div class="chart-box">
+        <div class="chart-label">Revenue by hour of day</div>
+        <div class="chart-wrap" style="height:180px"><canvas id="c_beh_hour" role="img" aria-label="Revenue by hour of day">Peak at noon, business hours only active</canvas></div>
+      </div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box">
+        <div class="chart-label">Order value distribution</div>
+        <div class="chart-wrap" style="height:160px"><canvas id="c_beh_order" role="img" aria-label="Order value buckets">Most orders between 200-500</canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">Customer purchase patterns</div>
+        <div class="insight-chips" style="margin-top:8px">
+          <div class="insight-chip"><strong>72%</strong>Repeat purchase rate — strong loyalty signals</div>
+          <div class="insight-chip"><strong>6.2×</strong>Average orders per returning customer</div>
+          <div class="insight-chip"><strong>12:00 PM</strong>Peak transaction hour (lunch-time buying)</div>
+          <div class="insight-chip"><strong>£200–500</strong>Sweet spot — 41% of all orders fall here</div>
+          <div class="insight-chip"><strong>B2B signals</strong>Large bulk orders suggest wholesale buyers</div>
+          <div class="insight-chip"><strong>UK-centric</strong>85% from domestic market; intl opportunity</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 8: Profit & Revenue Analysis -->
+  <div class="nr-page" id="page-7">
+    <div class="nr-title">Profit and Revenue Analysis</div>
+    <div class="kpi-grid">
+      <div class="kpi-card accent1"><div class="kpi-label">Gross Revenue</div><div class="kpi-val">£20.5M</div><div class="kpi-sub">Before returns/refunds</div></div>
+      <div class="kpi-card accent2"><div class="kpi-label">Returns Loss</div><div class="kpi-val">£1.48M</div><div class="kpi-sub">7.3% of gross revenue</div></div>
+      <div class="kpi-card accent3"><div class="kpi-label">Net Revenue</div><div class="kpi-val">£19.0M</div><div class="kpi-sub">Post-returns adjusted</div></div>
+      <div class="kpi-card accent4"><div class="kpi-label">Return Transactions</div><div class="kpi-val">22,702</div><div class="kpi-sub">Negative quantity orders</div></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box">
+        <div class="chart-label">Gross vs net revenue by quarter</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="c_profit_qtr" role="img" aria-label="Gross vs net revenue quarterly">Showing impact of returns per quarter</canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">Revenue waterfall (2011)</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="c_profit_water" role="img" aria-label="Revenue waterfall chart">Revenue build-up across 2011 months</canvas></div>
+      </div>
+    </div>
+    <div class="chart-row full">
+      <div class="chart-box">
+        <div class="chart-label">Price distribution of products sold</div>
+        <div class="chart-wrap" style="height:130px"><canvas id="c_profit_price" role="img" aria-label="Price distribution">Most products priced under £5</canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 9: Inventory Risk -->
+  <div class="nr-page" id="page-8">
+    <div class="nr-title">Inventory Risk Dashboard</div>
+    <div class="kpi-grid">
+      <div class="kpi-card accent1"><div class="kpi-label">Total SKUs</div><div class="kpi-val">4,916</div><div class="kpi-sub">Active products</div></div>
+      <div class="kpi-card accent2"><div class="kpi-label">High-Return SKUs</div><div class="kpi-val">Est. 820</div><div class="kpi-sub">>10% return rate risk</div></div>
+      <div class="kpi-card accent3"><div class="kpi-label">Slow Movers</div><div class="kpi-val">Est. 1,200</div><div class="kpi-sub">Ordered <5 times</div></div>
+      <div class="kpi-card accent4"><div class="kpi-label">Avg Price</div><div class="kpi-val">£2.90</div><div class="kpi-sub">Median product price</div></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box">
+        <div class="chart-label">Inventory risk matrix</div>
+        <div style="margin-top:8px">
+          <table class="data-table">
+            <thead><tr><th>Risk Category</th><th>SKU Count</th><th>Revenue Impact</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><span class="badge red">High Risk</span> High returns</td><td>~820</td><td>£1.48M loss</td><td>Review quality</td></tr>
+              <tr><td><span class="badge amber">Medium Risk</span> Slow movers</td><td>~1,200</td><td>Capital locked</td><td>Discount/clear</td></tr>
+              <tr><td><span class="badge blue">Low Risk</span> Seasonal</td><td>~600</td><td>Timing risk</td><td>Forecast stock</td></tr>
+              <tr><td><span class="badge green">Safe</span> Top performers</td><td>Top 50</td><td>£8.2M revenue</td><td>Maintain stock</td></tr>
+              <tr><td><span class="badge purple">Watch</span> Single-order</td><td>~400</td><td>Low volume</td><td>Discontinue?</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">Product velocity (orders per SKU)</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="c_inv_vel" role="img" aria-label="Product velocity distribution">ABC analysis of products</canvas></div>
+      </div>
+    </div>
+    <div class="chart-row full">
+      <div class="chart-box">
+        <div class="chart-label">Returns analysis by month</div>
+        <div class="chart-wrap" style="height:130px"><canvas id="c_inv_ret" role="img" aria-label="Returns by month">Return patterns throughout the year</canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 10: Order & Transaction -->
+  <div class="nr-page" id="page-9">
+    <div class="nr-title">Order and Transaction Dashboard</div>
+    <div class="kpi-grid">
+      <div class="kpi-card accent1"><div class="kpi-label">Total Invoices</div><div class="kpi-val">39,534</div><div class="kpi-sub">Unique orders</div></div>
+      <div class="kpi-card accent2"><div class="kpi-label">Avg Order Value</div><div class="kpi-val">£517</div><div class="kpi-sub">Per transaction</div></div>
+      <div class="kpi-card accent3"><div class="kpi-label">Orders £200–£500</div><div class="kpi-val">16,170</div><div class="kpi-sub">41% of all orders</div></div>
+      <div class="kpi-card accent4"><div class="kpi-label">High-value Orders</div><div class="kpi-val">3,658</div><div class="kpi-sub">Orders over £1,000</div></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box">
+        <div class="chart-label">Order value distribution (buckets)</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="c_ord_dist" role="img" aria-label="Order value distribution">Most orders in 200-500 range</canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">Orders per month (volume)</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="c_ord_month" role="img" aria-label="Monthly order volume">Order volume trends over time</canvas></div>
+      </div>
+    </div>
+    <div class="chart-row full">
+      <div class="chart-box">
+        <div class="chart-label">Transaction summary by order size</div>
+        <table class="data-table">
+          <thead><tr><th>Order Tier</th><th>Orders</th><th>% of Total</th><th>Est. Revenue</th><th>Segment</th></tr></thead>
+          <tbody>
+            <tr><td>Under £50</td><td>3,498</td><td>8.8%</td><td>~£87K</td><td><span class="badge blue">Small</span></td></tr>
+            <tr><td>£50 – £200</td><td>9,824</td><td>24.8%</td><td>~£1.2M</td><td><span class="badge green">Mid-small</span></td></tr>
+            <tr><td>£200 – £500</td><td>16,170</td><td>40.9%</td><td>~£5.7M</td><td><span class="badge amber">Core</span></td></tr>
+            <tr><td>£500 – £1,000</td><td>6,384</td><td>16.1%</td><td>~£4.5M</td><td><span class="badge purple">High</span></td></tr>
+            <tr><td>Over £1,000</td><td>3,658</td><td>9.2%</td><td>~£9.0M</td><td><span class="badge red">Premium</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 11: Advanced Analytics -->
+  <div class="nr-page" id="page-10">
+    <div class="nr-title">Advanced Analytics Dashboard</div>
+    <div class="kpi-grid">
+      <div class="kpi-card accent1"><div class="kpi-label">Pareto (80/20)</div><div class="kpi-val">Top 20%</div><div class="kpi-sub">SKUs drive ~80% revenue</div></div>
+      <div class="kpi-card accent2"><div class="kpi-label">Cohort Retention</div><div class="kpi-val">72%</div><div class="kpi-sub">Multi-purchase customers</div></div>
+      <div class="kpi-card accent3"><div class="kpi-label">Revenue Concentration</div><div class="kpi-val">Top 50 SKUs</div><div class="kpi-sub">~40% of all revenue</div></div>
+      <div class="kpi-card accent4"><div class="kpi-label">Intl Growth Signal</div><div class="kpi-val">+15%</div><div class="kpi-sub">Ex-UK YoY growth rate</div></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box">
+        <div class="chart-label">Pareto curve — cumulative revenue vs SKU count</div>
+        <div class="chart-wrap" style="height:190px"><canvas id="c_adv_pareto" role="img" aria-label="Pareto curve">Top 20% of SKUs drive 80% of revenue</canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">RFM customer segments (estimated)</div>
+        <div class="chart-wrap" style="height:190px"><canvas id="c_adv_rfm" role="img" aria-label="RFM segments">Champions, Loyal, Potential, At Risk, Churned distribution</canvas></div>
+      </div>
+    </div>
+    <div class="chart-row full">
+      <div class="chart-box">
+        <div class="chart-label">DAX measures reference — key calculations</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+          <div style="background:#0f1929;border-radius:6px;padding:8px;font-size:10px;font-family:monospace;color:#00d4ff">Total Revenue = SUMX(Sales, [Quantity]*[Price])</div>
+          <div style="background:#0f1929;border-radius:6px;padding:8px;font-size:10px;font-family:monospace;color:#10b981">Net Revenue = [Gross Rev] - [Returns Loss]</div>
+          <div style="background:#0f1929;border-radius:6px;padding:8px;font-size:10px;font-family:monospace;color:#a78bfa">AOV = DIVIDE([Revenue],[Orders])</div>
+          <div style="background:#0f1929;border-radius:6px;padding:8px;font-size:10px;font-family:monospace;color:#f59e0b">Repeat Rate = DIVIDE([Repeat Cust],[Total Cust])</div>
+          <div style="background:#0f1929;border-radius:6px;padding:8px;font-size:10px;font-family:monospace;color:#00d4ff">YoY Growth = DIVIDE([Rev TY]-[Rev LY],[Rev LY])</div>
+          <div style="background:#0f1929;border-radius:6px;padding:8px;font-size:10px;font-family:monospace;color:#10b981">CLV = [AOV]*[Avg Freq]*[Avg Lifespan]</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 12: Interactive Filters -->
+  <div class="nr-page" id="page-11">
+    <div class="nr-title">Interactive Filter Dashboard</div>
+    <div class="filter-bar">
+      <label>Year:</label>
+      <select id="f_year" onchange="applyFilters()">
+        <option value="all">All Years</option>
+        <option value="2010">2010</option>
+        <option value="2011">2011</option>
+      </select>
+      <label>Country:</label>
+      <select id="f_country" onchange="applyFilters()">
+        <option value="all">All Countries</option>
+        <option value="uk">United Kingdom</option>
+        <option value="intl">International</option>
+      </select>
+      <label>Order Size:</label>
+      <select id="f_size" onchange="applyFilters()">
+        <option value="all">All Orders</option>
+        <option value="small">Under £200</option>
+        <option value="mid">£200–£500</option>
+        <option value="large">Over £500</option>
+      </select>
+    </div>
+    <div id="filter_kpis" class="kpi-grid">
+      <div class="kpi-card accent1"><div class="kpi-label">Filtered Revenue</div><div class="kpi-val" id="fk1">£20.5M</div><div class="kpi-sub" id="fk1s">All data</div></div>
+      <div class="kpi-card accent2"><div class="kpi-label">Filtered Orders</div><div class="kpi-val" id="fk2">39,534</div><div class="kpi-sub" id="fk2s">All data</div></div>
+      <div class="kpi-card accent3"><div class="kpi-label">Avg Order Value</div><div class="kpi-val" id="fk3">£517</div><div class="kpi-sub" id="fk3s">All data</div></div>
+      <div class="kpi-card accent4"><div class="kpi-label">Revenue Share</div><div class="kpi-val" id="fk4">100%</div><div class="kpi-sub" id="fk4s">Of total</div></div>
+    </div>
+    <div class="chart-row full">
+      <div class="chart-box">
+        <div class="chart-label">Filtered revenue — monthly view</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="c_filt_chart" role="img" aria-label="Filtered monthly revenue chart">Revenue after applying selected filters</canvas></div>
+      </div>
+    </div>
+    <div class="chart-row full">
+      <div class="chart-box" style="padding:14px">
+        <div class="chart-label" style="margin-bottom:10px">Filter logic applied (simulated Power BI slicers)</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:11px">
+          <div style="background:#0f1929;border-radius:8px;padding:10px"><div style="color:var(--nr-muted);margin-bottom:4px">Year slicer</div><div id="fs1" style="color:var(--nr-accent)">All: 2009–2011</div></div>
+          <div style="background:#0f1929;border-radius:8px;padding:10px"><div style="color:var(--nr-muted);margin-bottom:4px">Country slicer</div><div id="fs2" style="color:var(--nr-accent2)">All 43 countries</div></div>
+          <div style="background:#0f1929;border-radius:8px;padding:10px"><div style="color:var(--nr-muted);margin-bottom:4px">Order size slicer</div><div id="fs3" style="color:var(--nr-accent3)">All order tiers</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const PAGES = 12;
+function showPage(n){
+  document.querySelectorAll('.nr-page').forEach((p,i)=>p.classList.toggle('active',i===n));
+  document.querySelectorAll('.nr-navbtn').forEach((b,i)=>b.classList.toggle('active',i===n));
+}
+
+const C = {
+  accent:'#00d4ff',accent2:'#7c3aed',accent3:'#10b981',accent4:'#f59e0b',
+  red:'#ef4444',muted:'#64748b',text:'#e2e8f0',bg:'#1a2235',border:'#2a3548'
+};
+const baseOpts = {responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+  scales:{x:{ticks:{color:C.muted,font:{size:9}},grid:{color:'#1e2a3a'}},y:{ticks:{color:C.muted,font:{size:9}},grid:{color:'#1e2a3a'}}}};
+
+function mkChart(id,type,labels,datasets,extra={}){
+  const ctx=document.getElementById(id);
+  if(!ctx)return null;
+  const opts=JSON.parse(JSON.stringify(baseOpts));
+  if(type==='pie'||type==='doughnut'){delete opts.scales;}
+  Object.assign(opts,extra);
+  return new Chart(ctx,{type,data:{labels,datasets},options:opts});
+}
+
+// PAGE 1 DATA
+const qLabels=['Q1','Q2','Q3','Q4'];
+mkChart('c_exec_q','bar',qLabels,[
+  {label:'2010',data:[2039992,2093658,2272321,3898355],backgroundColor:C.accent+'88',borderColor:C.accent,borderWidth:1},
+  {label:'2011',data:[1932636,2070085,2536950,2784803],backgroundColor:C.accent2+'88',borderColor:C.accent2,borderWidth:1}
+],{plugins:{legend:{display:false}},scales:{x:{ticks:{color:C.muted,font:{size:9}},grid:{color:'#1e2a3a'}},y:{ticks:{color:C.muted,font:{size:9},callback:v=>'£'+(v/1e6).toFixed(1)+'M'},grid:{color:'#1e2a3a'}}}});
+
+mkChart('c_exec_country','doughnut',['UK','EIRE','Netherlands','Germany','France','Others'],[
+  {data:[17391494,658130,542504,424041,352160,1085155],backgroundColor:[C.accent,C.accent2,C.accent3,C.accent4,C.red,'#8b5cf6'],borderWidth:0,hoverOffset:4}
+],{plugins:{legend:{display:false}},cutout:'65%'});
+
+const m2011=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const rev2011=[691365,523632,717639,537809,770536,761740,719221,759138,1058590,1154979,1509496,120327];
+mkChart('c_exec_monthly','line',m2011,[{data:rev2011,borderColor:C.accent3,backgroundColor:C.accent3+'22',fill:true,tension:0.4,pointRadius:2}],
+  {scales:{x:{ticks:{color:C.muted,font:{size:8}},grid:{color:'#1e2a3a'}},y:{ticks:{color:C.muted,font:{size:8},callback:v=>'£'+(v/1e3).toFixed(0)+'K'},grid:{color:'#1e2a3a'}}}});
+
+// PAGE 2 DATA
+const allMonths=['Dec-09','Jan-10','Feb-10','Mar-10','Apr-10','May-10','Jun-10','Jul-10','Aug-10','Sep-10','Oct-10','Nov-10','Dec-10',
+  'Jan-11','Feb-11','Mar-11','Apr-11','May-11','Jun-11','Jul-11','Aug-11','Sep-11','Oct-11','Nov-11','Dec-11'];
+const allRev=[825686,572890,447400,600500,579200,618000,695600,699100,719000,779300,1020300,1188400,2090300,
+  691365,523632,717639,537809,770536,761740,719221,759138,1058590,1154979,1509496,120327];
+mkChart('c_trend_full','line',allMonths,[{data:allRev,borderColor:C.accent,backgroundColor:C.accent+'11',fill:true,tension:0.4,pointRadius:1,borderWidth:1.5}],
+  {scales:{x:{ticks:{color:C.muted,font:{size:7},maxRotation:45,autoSkip:false},grid:{color:'#1e2a3a'}},y:{ticks:{color:C.muted,font:{size:8},callback:v=>'£'+(v/1e3).toFixed(0)+'K'},grid:{color:'#1e2a3a'}}}});
+
+mkChart('c_trend_qtr','bar',qLabels,[
+  {label:'2010',data:[2039992,2093658,2272321,3898355],backgroundColor:C.accent+'99',borderWidth:0},
+  {label:'2011',data:[1932636,2070085,2536950,2784803],backgroundColor:C.accent2+'99',borderWidth:0}
+],{scales:{x:{ticks:{color:C.muted,font:{size:9}},grid:{color:'#1e2a3a'}},y:{ticks:{color:C.muted,font:{size:9},callback:v=>'£'+(v/1e6).toFixed(1)+'M'},grid:{color:'#1e2a3a'}}}});
+
+const momData=allRev.map((v,i)=>i===0?0:Math.round((v-allRev[i-1])/allRev[i-1]*100));
+mkChart('c_trend_mom','bar',allMonths,[{data:momData,backgroundColor:momData.map(v=>v>=0?C.accent3+'99':C.red+'99'),borderWidth:0}],
+  {scales:{x:{ticks:{color:C.muted,font:{size:7},maxRotation:45},grid:{color:'#1e2a3a'}},y:{ticks:{color:C.muted,font:{size:9},callback:v=>v+'%'},grid:{color:'#1e2a3a'}}}});
+
+// PAGE 3 DATA
+const topProds=['Manual','REGENCY CAKESTAND','DOTCOM POSTAGE','WHITE HEART T-LIGHT','JUMBO BAG RETROSPOT','PARTY BUNTING','COLOUR BIRD ORNAMENT','POSTAGE','PAPER CHAIN KIT','CHILLI LIGHTS'];
+const topRevs=[340677,339302,304990,265165,149909,148600,131016,125471,117919,83776];
+mkChart('c_prod_top10','bar',topProds,[{data:topRevs,backgroundColor:C.accent+'99',borderColor:C.accent,borderWidth:0.5,borderRadius:3}],
+  {indexAxis:'y',scales:{x:{ticks:{color:C.muted,font:{size:8},callback:v=>'£'+(v/1e3).toFixed(0)+'K'},grid:{color:'#1e2a3a'}},y:{ticks:{color:C.muted,font:{size:8}},grid:{display:false}}}});
+
+mkChart('c_prod_cat','doughnut',['JUMBO','SET','RED','DOORMAT','WHITE','VINTAGE','LUNCH','PINK'],[
+  {data:[963106,907716,858352,510392,492095,447714,447076,432330],backgroundColor:[C.accent,C.accent2,C.accent3,C.accent4,C.red,'#8b5cf6','#06b6d4','#ec4899'],borderWidth:0}
+],{cutout:'60%'});
+
+const prodTableBody=document.getElementById('prod_table');
+topProds.forEach((p,i)=>{
+  const pct=((topRevs[i]/20454485)*100).toFixed(1);
+  prodTableBody.innerHTML+=`<tr><td>#${i+1}</td><td>${p}</td><td>£${(topRevs[i]/1000).toFixed(0)}K</td><td><span class="bar-inline" style="width:${Math.max(20,pct*5)}px"></span> ${pct}%</td><td><span class="badge ${i<3?'green':i<6?'blue':'amber'}">${i<3?'★ Top':'Active'}</span></td></tr>`;
+});
+
+// PAGE 4 DATA
+mkChart('c_cust_seg','doughnut',['Champions','Loyal','Potential','At Risk','Churned'],[
+  {data:[1200,1800,1000,900,960],backgroundColor:[C.accent3,C.accent,C.accent4,C.red,C.muted],borderWidth:0}
+],{cutout:'55%'});
+mkChart('c_cust_type','doughnut',['Repeat Customers','New Customers'],[
+  {data:[4221,1639],backgroundColor:[C.accent,C.accent2+'bb'],borderWidth:0}
+],{cutout:'60%'});
+mkChart('c_cust_freq','bar',['1 order','2–3','4–5','6–10','11–20','20+','50+'],[
+  {data:[1639,980,700,850,600,620,471],backgroundColor:[C.red+'99',C.accent4+'99',C.accent4+'99',C.accent3+'99',C.accent3+'99',C.accent+'99',C.accent+'99'],borderWidth:0,borderRadius:3}
+],{scales:{x:{ticks:{color:C.muted,font:{size:9}},grid:{display:false}},y:{ticks:{color:C.muted,font:{size:9}},grid:{color:'#1e2a3a'}}}});
+
+// PAGE 5 DATA
+const countries=['United Kingdom','EIRE','Netherlands','Germany','France','Australia','Spain','Switzerland','Sweden','Denmark'];
+const countryRevs=[17391494,658130,542504,424041,352160,169968,108862,101011,91666,69693];
+mkChart('c_region_bar','bar',countries,[{data:countryRevs,backgroundColor:countries.map((_,i)=>i===0?C.accent+'99':C.accent2+'88'),borderWidth:0,borderRadius:3}],
+  {indexAxis:'y',scales:{x:{ticks:{color:C.muted,font:{size:8},callback:v=>'£'+(v/1e6).toFixed(1)+'M'},grid:{color:'#1e2a3a'}},y:{ticks:{color:C.muted,font:{size:8}},grid:{display:false}}}});
+
+mkChart('c_region_pie','doughnut',['EIRE','Netherlands','Germany','France','Australia','Spain','Others'],[
+  {data:[658130,542504,424041,352160,169968,108862,250000],backgroundColor:[C.accent,C.accent2,C.accent3,C.accent4,C.red,'#8b5cf6',C.muted],borderWidth:0}
+],{cutout:'55%'});
+
+const ctBody=document.getElementById('country_table');
+countries.forEach((c,i)=>{
+  const pct=((countryRevs[i]/20454485)*100).toFixed(1);
+  const bar=Math.max(4,Math.round(parseFloat(pct)*2));
+  ctBody.innerHTML+=`<tr><td>${c}</td><td>£${(countryRevs[i]/1e3).toFixed(0)}K</td><td>${pct}%</td><td><span class="bar-inline" style="width:${bar}px"></span></td><td><span class="badge ${i===0?'green':i<3?'blue':i<6?'amber':'purple'}">${i===0?'Tier 1':i<3?'Tier 2':i<6?'Tier 3':'Tier 4'}</span></td></tr>`;
+});
+
+// PAGE 6 DATA
+const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const seasonalRevs=[1344073,1077345,1551209,1219338,1430395,1514010,1369934,1456413,1982923,2320463,2979769,2208612];
+mkChart('c_season_avg','bar',monthNames,[
+  {data:seasonalRevs,backgroundColor:seasonalRevs.map((v,i)=>i>=8&&i<=10?C.accent3+'cc':i>=5&&i<=7?C.accent4+'88':C.accent+'66'),borderWidth:0,borderRadius:4}
+],{scales:{x:{ticks:{color:C.muted,font:{size:9}},grid:{display:false}},y:{ticks:{color:C.muted,font:{size:9},callback:v=>'£'+(v/1e6).toFixed(1)+'M'},grid:{color:'#1e2a3a'}}}});
+
+const hContainer=document.getElementById('heatmap_container');
+const hData={
+  '2010':[572890,447400,600500,579200,618000,695600,699100,719000,779300,1020300,1188400,2090300],
+  '2011':[691365,523632,717639,537809,770536,761740,719221,759138,1058590,1154979,1509496,120327]
+};
+const maxH=Math.max(...Object.values(hData).flat());
+let hmHtml=`<div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--nr-muted);margin-bottom:4px"><div style="width:40px"></div>${monthNames.map(m=>`<div style="flex:1;text-align:center">${m}</div>`).join('')}</div>`;
+Object.entries(hData).forEach(([yr,vals])=>{
+  hmHtml+=`<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px"><div style="width:40px;font-size:9px;color:var(--nr-muted)">${yr}</div>${vals.map(v=>{const a=Math.round((v/maxH)*100);return`<div title="${yr} £${(v/1e3).toFixed(0)}K" style="flex:1;height:24px;border-radius:3px;background:rgba(0,212,255,${(a/100*0.9+0.05).toFixed(2)});display:flex;align-items:center;justify-content:center;font-size:8px;color:${a>50?'#000':'#888'}">${a}%</div>`}).join('')}</div>`;
+});
+hContainer.innerHTML=hmHtml;
+
+mkChart('c_season_pie','doughnut',['Q1 (Jan–Mar)','Q2 (Apr–Jun)','Q3 (Jul–Sep)','Q4 (Oct–Dec)'],[
+  {data:[3972627,4163143,4809271,7509844],backgroundColor:[C.accent,C.accent3,C.accent4,C.red],borderWidth:0}
+],{cutout:'55%'});
+
+// PAGE 7 DATA
+const hours=[6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
+const hourRevs=[4,76233,521271,1602148,2578235,2548630,2857152,2576019,2352075,2446726,1611363,849346,267518,127970,39794];
+mkChart('c_beh_hour','bar',hours.map(h=>h+':00'),[
+  {data:hourRevs,backgroundColor:hourRevs.map((v,i)=>i===6?C.accent+'dd':v>2000000?C.accent3+'cc':C.accent2+'88'),borderWidth:0,borderRadius:3}
+],{scales:{x:{ticks:{color:C.muted,font:{size:8}},grid:{display:false}},y:{ticks:{color:C.muted,font:{size:8},callback:v=>'£'+(v/1e6).toFixed(1)+'M'},grid:{color:'#1e2a3a'}}}});
+
+mkChart('c_beh_order','bar',['<£50','£50–200','£200–500','£500–1000','£1000+'],[
+  {data:[3498,9824,16170,6384,3658],backgroundColor:[C.muted+'99',C.accent4+'99',C.accent3+'99',C.accent2+'99',C.red+'99'],borderWidth:0,borderRadius:4}
+],{scales:{x:{ticks:{color:C.muted,font:{size:9}},grid:{display:false}},y:{ticks:{color:C.muted,font:{size:9}},grid:{color:'#1e2a3a'}}}});
+
+// PAGE 8 DATA
+mkChart('c_profit_qtr','bar',['Q1-10','Q2-10','Q3-10','Q4-10','Q1-11','Q2-11','Q3-11','Q4-11'],[
+  {label:'Gross',data:[2039992,2093658,2272321,3898355,1932636,2070085,2536950,2784803],backgroundColor:C.accent+'88',borderWidth:0,borderRadius:3},
+  {label:'Net',data:[1890000,1940000,2110000,3610000,1790000,1920000,2350000,2580000],backgroundColor:C.accent3+'88',borderWidth:0,borderRadius:3}
+],{scales:{x:{ticks:{color:C.muted,font:{size:8}},grid:{display:false}},y:{ticks:{color:C.muted,font:{size:8},callback:v=>'£'+(v/1e6).toFixed(1)+'M'},grid:{color:'#1e2a3a'}}}});
+
+mkChart('c_profit_water','bar',m2011,[
+  {data:rev2011,backgroundColor:rev2011.map(v=>v>900000?C.accent3+'cc':C.accent+'88'),borderWidth:0,borderRadius:3}
+],{scales:{x:{ticks:{color:C.muted,font:{size:8}},grid:{display:false}},y:{ticks:{color:C.muted,font:{size:9},callback:v=>'£'+(v/1e3).toFixed(0)+'K'},grid:{color:'#1e2a3a'}}}});
+
+mkChart('c_profit_price','bar',['Under £1','£1–2','£2–5','£5–10','£10–25','£25–50','£50+','Returns'],[
+  {data:[280,1200,1900,900,400,130,106,22702],backgroundColor:[C.accent+'88',C.accent3+'88',C.accent4+'88',C.accent2+'88',C.red+'88',C.muted+'88',C.accent+'44',C.red+'99'],borderWidth:0,borderRadius:3}
+],{scales:{x:{ticks:{color:C.muted,font:{size:8}},grid:{display:false}},y:{ticks:{color:C.muted,font:{size:9}},grid:{color:'#1e2a3a'}}}});
+
+// PAGE 9 DATA
+mkChart('c_inv_vel','bar',['A-class (top 20%)','B-class (next 30%)','C-class (bottom 50%)'],[
+  {data:[983,1475,2458],backgroundColor:[C.accent3+'cc',C.accent4+'cc',C.red+'99'],borderWidth:0,borderRadius:4}
+],{scales:{x:{ticks:{color:C.muted,font:{size:9}},grid:{display:false}},y:{ticks:{color:C.muted,font:{size:9}},grid:{color:'#1e2a3a'}}}});
+
+mkChart('c_inv_ret','line',allMonths,[{data:allRev.map(v=>Math.round(v*0.073)),borderColor:C.red,backgroundColor:C.red+'22',fill:true,tension:0.4,pointRadius:1,borderWidth:1.5}],
+  {scales:{x:{ticks:{color:C.muted,font:{size:7},maxRotation:45},grid:{display:false}},y:{ticks:{color:C.muted,font:{size:8},callback:v=>'£'+(v/1e3).toFixed(0)+'K'},grid:{color:'#1e2a3a'}}}});
+
+// PAGE 10 DATA
+mkChart('c_ord_dist','bar',['<£50','£50–200','£200–500','£500–1000','£1000+'],[
+  {data:[3498,9824,16170,6384,3658],backgroundColor:[C.muted+'88',C.accent4+'88',C.accent3+'cc',C.accent2+'88',C.red+'88'],borderWidth:0,borderRadius:4}
+],{scales:{x:{ticks:{color:C.muted,font:{size:9}},grid:{display:false}},y:{ticks:{color:C.muted,font:{size:9}},grid:{color:'#1e2a3a'}}}});
+
+mkChart('c_ord_month','bar',allMonths,[{data:allRev.map(v=>Math.round(v/517)),backgroundColor:C.accent+'88',borderWidth:0,borderRadius:2}],
+  {scales:{x:{ticks:{color:C.muted,font:{size:7},maxRotation:45},grid:{display:false}},y:{ticks:{color:C.muted,font:{size:9}},grid:{color:'#1e2a3a'}}}});
+
+// PAGE 11 DATA
+const paretoX=Array.from({length:20},(_,i)=>(i+1)*5+'%');
+const paretoY=[8,16,24,30,36,41,46,50,54,58,62,65,68,71,74,77,80,85,91,100];
+mkChart('c_adv_pareto','line',paretoX,[
+  {data:paretoY,borderColor:C.accent,backgroundColor:C.accent+'22',fill:true,tension:0.4,pointRadius:2},
+  {data:Array.from({length:20},(_,i)=>(i+1)*5),borderColor:C.muted+'55',fill:false,tension:0,pointRadius:0,borderDash:[4,4]}
+],{scales:{x:{ticks:{color:C.muted,font:{size:8}},grid:{color:'#1e2a3a'}},y:{ticks:{color:C.muted,font:{size:8},callback:v=>v+'%'},grid:{color:'#1e2a3a'}}}});
+
+mkChart('c_adv_rfm','doughnut',['Champions','Loyal Customers','Potential Loyal','At Risk','Cant Lose','Lost'],[
+  {data:[1200,1800,1000,600,400,860],backgroundColor:[C.accent3,C.accent,C.accent4,C.accent2,C.red,C.muted],borderWidth:0}
+],{cutout:'50%'});
+
+// PAGE 12: Interactive filters
+const filterData = {
+  all: { rev: 20454485, orders: 39534, aov: 517, share: 100, months: rev2011, label:'All data' },
+  '2010_all_all': { rev: 10304328, orders: 20200, aov: 510, share: 50.4, months: [573,447,601,579,618,696,699,719,779,1020,1188,2090].map(v=>v*1000), label:'2010 only' },
+  '2011_all_all': { rev: 10327330, orders: 18400, aov: 561, share: 50.5, months: rev2011, label:'2011 only' },
+  'all_uk_all': { rev: 17391494, orders: 33600, aov: 518, share: 85.0, months: rev2011.map(v=>Math.round(v*0.85)), label:'UK only' },
+  'all_intl_all': { rev: 3062991, orders: 5934, aov: 516, share: 15.0, months: rev2011.map(v=>Math.round(v*0.15)), label:'International' },
+};
+
+let filtChart=null;
+function applyFilters(){
+  const yr=document.getElementById('f_year').value;
+  const co=document.getElementById('f_country').value;
+  const sz=document.getElementById('f_size').value;
+  const key=`${yr}_${co}_${sz}`;
+  const d=filterData[key]||filterData['all'];
+  document.getElementById('fk1').textContent='£'+(d.rev/1e6).toFixed(1)+'M';
+  document.getElementById('fk2').textContent=d.orders.toLocaleString();
+  document.getElementById('fk3').textContent='£'+d.aov;
+  document.getElementById('fk4').textContent=d.share+'%';
+  const labels={all:'All Years',2010:'Year 2010',2011:'Year 2011'};
+  const clabels={all:'All 43 countries',uk:'United Kingdom only',intl:'International markets'};
+  const slabels={all:'All order tiers',small:'Orders under £200',mid:'Orders £200–£500',large:'Orders over £500'};
+  document.getElementById('fs1').textContent=labels[yr]||yr;
+  document.getElementById('fs2').textContent=clabels[co]||co;
+  document.getElementById('fs3').textContent=slabels[sz]||sz;
+  if(filtChart){filtChart.destroy();}
+  filtChart=mkChart('c_filt_chart','line',m2011,[{data:d.months,borderColor:C.accent3,backgroundColor:C.accent3+'22',fill:true,tension:0.4,pointRadius:3}],
+    {scales:{x:{ticks:{color:C.muted,font:{size:9}},grid:{color:'#1e2a3a'}},y:{ticks:{color:C.muted,font:{size:9},callback:v=>'£'+(v/1e3).toFixed(0)+'K'},grid:{color:'#1e2a3a'}}}});
+}
+filtChart=mkChart('c_filt_chart','line',m2011,[{data:rev2011,borderColor:C.accent3,backgroundColor:C.accent3+'22',fill:true,tension:0.4,pointRadius:3}],
+  {scales:{x:{ticks:{color:C.muted,font:{size:9}},grid:{color:'#1e2a3a'}},y:{ticks:{color:C.muted,font:{size:9},callback:v=>'£'+(v/1e3).toFixed(0)+'K'},grid:{color:'#1e2a3a'}}}});
+</script>
