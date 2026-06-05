@@ -80,8 +80,8 @@ section[data-testid="stSidebar"] {
 def load_data():
 
     df = pd.read_csv(
-        "data/retail.csv.csv",
-        encoding="utf-8-sig"
+    "retail_small.csv",
+    encoding="utf-8-sig"
     )
 
     df.columns = (
